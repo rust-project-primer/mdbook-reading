@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
 use mdbook::preprocess::{CmdPreprocessor, Preprocessor};
 use mdbook_reading::ReadingPreprocessor;
@@ -49,6 +49,6 @@ impl Options {
 fn main() -> Result<()> {
     env_logger::init();
     let options = Options::parse();
-    let renderer = ReadingPreprocessor::new();
+    let renderer = ReadingPreprocessor::default();
     options.run(&renderer)
 }
