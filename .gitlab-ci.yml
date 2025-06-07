@@ -37,5 +37,5 @@ release:
     rules:
         - if: $CI_COMMIT_TAG
     script:
-      - 'release-cli create --name "mdbook-reading-$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"mdbook-reading-${CI_COMMIT_TAG}\", \"url\":\"${PACKAGE_REGISTRY_URL}/mdbook-reading-${CI_COMMIT_TAG}\",\"filepath\":\"mdbook-reading\"}"'
+      - 'release-cli create --name "mdbook-reading-$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"mdbook-reading-${CI_COMMIT_TAG}\", \"url\":\"${PACKAGE_REGISTRY_URL}/mdbook-reading-${CI_COMMIT_TAG}\",\"filepath\":\"/mdbook-reading-amd64\"}"'
 
