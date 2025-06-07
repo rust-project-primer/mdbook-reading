@@ -1,5 +1,4 @@
-use anyhow::{Context as _, Result, bail};
-use log::*;
+use anyhow::{Context as _, Result};
 use mdbook::{
     BookItem,
     book::{Book, Chapter},
@@ -9,33 +8,30 @@ use mdbook::{
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
 use pulldown_cmark_to_cmark::cmark;
 use serde::Deserialize;
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    fmt::Write,
-};
-use tera::Tera;
 use toml::value::Value;
 use url::Url;
+
+fn default_label() -> String {
+    "reading".into()
+}
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
     /// Base path where archives are stored.
     archives: Option<String>,
+    /// Label to look for
+    #[serde(default = "default_label")]
+    label: String,
 }
 
 #[derive(Debug)]
 pub struct Instance {
-    templates: Tera,
     config: Config,
 }
 
 impl Instance {
     pub fn new(config: Config) -> Self {
-        let mut templates = Tera::default();
-        templates
-            .add_raw_template("output", include_str!("output.tera"))
-            .unwrap();
-        Self { templates, config }
+        Self { config }
     }
 
     fn map(&self, book: Book) -> Result<Book> {
@@ -74,12 +70,10 @@ impl Instance {
             match next {
                 None => break,
                 Some(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(label))))
-                    if &*label == "reading" =>
+                    if &*label == &self.config.label =>
                 {
                     let mapped = match parser.next() {
-                        Some(Event::Text(code)) => {
-                            self.map_code(&*label, code).context("Mapping code")?
-                        }
+                        Some(Event::Text(code)) => self.map_code(code).context("Mapping code")?,
                         other => unreachable!("Got {other:?}"),
                     };
 
@@ -98,19 +92,20 @@ impl Instance {
         Ok(output)
     }
 
-    fn map_code(&self, label: &str, code: CowStr<'_>) -> Result<Vec<Event<'static>>> {
+    fn map_code(&self, code: CowStr<'_>) -> Result<Vec<Event<'static>>> {
         let (header, content) = code.split_once("---").unwrap();
         let header: Header = serde_yaml::from_str(header)?;
 
         let title = header.title(&self.config);
 
         let mut events: Vec<Event<'static>> = Vec::new();
-        events.push(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(title.into()))));
+        events.push(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(
+            title.into(),
+        ))));
         events.push(Event::Text(content.to_string().into()));
         events.push(Event::End(TagEnd::CodeBlock));
         Ok(events)
     }
-
 }
 
 #[derive(Deserialize, Debug)]
@@ -124,7 +119,13 @@ pub struct Header {
 
 impl Header {
     pub fn title(&self, config: &Config) -> String {
-        let Self { style, title, author, url, archived } = &self;
+        let Self {
+            style,
+            title,
+            author,
+            url,
+            archived,
+        } = &self;
         let mut title = format!("<a href='{url}'>{title}</a>");
         if let Some(archived) = &archived {
             let prefix = config.archives.as_deref().unwrap_or("");

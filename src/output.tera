@@ -1,3 +1,0 @@
-~~~admonish {{ kind }} title=""
-{{ content }}
-~~~
