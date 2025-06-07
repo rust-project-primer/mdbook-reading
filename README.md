@@ -22,3 +22,12 @@ Description of the article.
 Description of the article.
 ~~~
 ```
+
+## ToDo
+
+- different types
+    - article
+    - chapter (in a book)
+    - book (entire book)
+    - video
+    - website
