@@ -5,14 +5,16 @@ stages:
 
 variables:
     PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/mdbook-reading/${CI_COMMIT_TAG}"
+    TARGET_NAME: x86_64-unknown-linux-musl
 
 build:
     stage: build
     image: rust:latest
-    script: 
-        - cargo build --release
+    script:
+        - rustup target add $TARGET_NAME
+        - cargo build --release --target $TARGET_NAME
         - mkdir bin
-        - mv target/release/mdbook-reading bin/mdbook-reading-${CI_COMMIT_TAG}
+        - mv target/$TARGET_NAME/release/mdbook-reading bin/mdbook-reading-${CI_COMMIT_TAG}
     cache:
         paths:
             - target/release/
