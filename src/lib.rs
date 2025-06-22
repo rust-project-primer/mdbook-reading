@@ -70,7 +70,7 @@ impl Instance {
             match next {
                 None => break,
                 Some(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(label))))
-                    if &*label == &self.config.label =>
+                    if *label == self.config.label =>
                 {
                     let mapped = match parser.next() {
                         Some(Event::Text(code)) => self.map_code(code).context("Mapping code")?,
@@ -98,12 +98,11 @@ impl Instance {
 
         let title = header.title(&self.config);
 
-        let mut events: Vec<Event<'static>> = Vec::new();
-        events.push(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(
-            title.into(),
-        ))));
-        events.push(Event::Text(content.to_string().into()));
-        events.push(Event::End(TagEnd::CodeBlock));
+        let events: Vec<Event<'static>> = vec![
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(title.into()))),
+            Event::Text(content.to_string().into()),
+            Event::End(TagEnd::CodeBlock),
+        ];
         Ok(events)
     }
 }

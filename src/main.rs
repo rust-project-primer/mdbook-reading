@@ -49,6 +49,6 @@ impl Options {
 fn main() -> Result<()> {
     env_logger::init();
     let options = Options::parse();
-    let renderer = ReadingPreprocessor::default();
+    let renderer = ReadingPreprocessor;
     options.run(&renderer)
 }
