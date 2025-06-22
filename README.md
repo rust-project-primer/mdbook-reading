@@ -27,7 +27,11 @@ Description of the article.
 
 - different types
     - article
+    - paper
+    - website
     - chapter (in a book)
     - book (entire book)
-    - video
-    - website
+    - video (reddish)
+    - repository (blue)
+
+- test archived files
