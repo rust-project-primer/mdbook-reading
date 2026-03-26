@@ -1,14 +1,11 @@
 use anyhow::{Context as _, Result};
-use mdbook::{
-    BookItem,
-    book::{Book, Chapter},
-    errors::Result as MdbookResult,
-    preprocess::{Preprocessor, PreprocessorContext},
+use mdbook_preprocessor::{
+    Preprocessor, PreprocessorContext,
+    book::{Book, BookItem, Chapter},
 };
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
 use pulldown_cmark_to_cmark::cmark;
 use serde::Deserialize;
-use toml::value::Value;
 use url::Url;
 
 fn default_label() -> String {
@@ -36,7 +33,7 @@ impl Instance {
 
     fn map(&self, book: Book) -> Result<Book> {
         let mut book = book;
-        book.sections = std::mem::take(&mut book.sections)
+        book.items = std::mem::take(&mut book.items)
             .into_iter()
             .map(|section| self.map_book_item(section))
             .collect::<Result<_, _>>()?;
@@ -145,9 +142,9 @@ impl Preprocessor for ReadingPreprocessor {
         "reading"
     }
 
-    fn run(&self, ctx: &PreprocessorContext, book: Book) -> MdbookResult<Book> {
-        let config = ctx.config.get_preprocessor(self.name()).unwrap();
-        let config: Config = Value::Table(config.clone()).try_into().unwrap();
+    fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book> {
+        let key = format!("preprocessor.{}", self.name());
+        let config: Config = ctx.config.get(&key)?.unwrap();
         let instance = Instance::new(config);
         instance.map(book)
     }
