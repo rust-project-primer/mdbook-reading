@@ -42,7 +42,13 @@ impl Instance {
 
     fn map_book_item(&self, item: BookItem) -> Result<BookItem> {
         let result = match item {
-            BookItem::Chapter(chapter) => BookItem::Chapter(self.map_chapter(chapter)?),
+            BookItem::Chapter(chapter) => {
+                let title = chapter.name.clone();
+                let chapter = self
+                    .map_chapter(chapter)
+                    .with_context(|| format!("mapping chapter {title:?}"))?;
+                BookItem::Chapter(chapter)
+            }
             other => other,
         };
 
